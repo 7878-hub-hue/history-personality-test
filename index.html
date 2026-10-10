@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你与哪位历史人物相似？</title>
+<style>
+  :root{
+    --paper:#f3e9d2; --paper2:#ecdfc0; --ink:#2b2118; --brown:#4a3a28;
+    --gold:#8a6d3b; --cinnabar:#b03a2e; --line:#c9b183; --dim:#7a6a4f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:"Kaiti SC","KaiTi","STKaiti","Songti SC","SimSun",serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #faf3e0, transparent 60%),
+      repeating-linear-gradient(0deg, rgba(138,109,59,.035) 0 1px, transparent 1px 26px),
+      var(--paper);
+    color:var(--ink); min-height:100vh; display:flex; justify-content:center;
+    padding:24px 14px 60px;
+  }
+  .wrap{width:100%;max-width:640px;}
+  .hidden{display:none !important;}
+  /* ---------- 封面 ---------- */
+  .cover{text-align:center;padding-top:34px;position:relative;}
+  .seal{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:52px;height:52px;border:3px solid var(--cinnabar);color:var(--cinnabar);
+    font-size:30px;font-weight:bold;transform:rotate(-4deg);
+    box-shadow:0 0 0 2px var(--paper), 0 0 0 3px rgba(176,58,46,.4);
+    border-radius:6px;margin-bottom:18px;background:rgba(176,58,46,.05);
+  }
+  h1{
+    font-size:40px;line-height:1.25;letter-spacing:6px;color:var(--ink);
+    text-shadow:0 1px 0 #fff;
+  }
+  h1 em{font-style:normal;color:var(--cinnabar);border-bottom:3px double var(--cinnabar);padding:0 4px;}
+  .subtitle{
+    margin-top:10px;letter-spacing:4px;font-size:12px;color:var(--gold);
+    font-family:Georgia,"Times New Roman",serif;text-transform:uppercase;
+  }
+  .tags{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:26px 0 8px;}
+  .tag{
+    border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;
+    color:var(--brown);background:rgba(255,255,255,.45);letter-spacing:2px;
+  }
+  .note{
+    margin:22px auto 0;max-width:520px;text-align:left;background:rgba(255,255,255,.5);
+    border:1px dashed var(--line);border-radius:10px;padding:14px 18px;font-size:14px;line-height:1.8;
+  }
+  .note b{color:var(--cinnabar);}
+  .lockbox{margin:24px auto 0;max-width:300px;}
+  .lockbox .lbl{font-size:13px;color:var(--dim);letter-spacing:2px;margin-bottom:8px;}
+  .lockrow{display:flex;gap:8px;}
+  .lockrow input{
+    flex:1;height:46px;text-align:center;font-size:20px;letter-spacing:10px;
+    border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.7);
+    font-family:inherit;color:var(--ink);outline:none;
+  }
+  .lockrow input:focus{border-color:var(--cinnabar);box-shadow:0 0 0 3px rgba(176,58,46,.12);}
+  .lockerr{color:var(--cinnabar);font-size:12px;margin-top:8px;min-height:16px;}
+  .btn{
+    display:inline-block;cursor:pointer;border:none;font-family:inherit;
+    background:var(--cinnabar);color:#fff;font-size:16px;letter-spacing:6px;
+    padding:13px 44px;border-radius:8px;margin-top:14px;box-shadow:0 4px 12px rgba(176,58,46,.35);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 7px 16px rgba(176,58,46,.4);}
+  .btn.ghost{background:transparent;color:var(--brown);border:1px solid var(--line);box-shadow:none;letter-spacing:3px;font-size:13px;padding:9px 26px;}
+  .btn.ghost:hover{border-color:var(--cinnabar);color:var(--cinnabar);}
+  .hint{margin-top:16px;font-size:12px;color:var(--dim);letter-spacing:1px;}
+  /* ---------- 答题 ---------- */
+  .quiz{display:flex;flex-direction:column;gap:18px;padding-top:18px;}
+  .progress{font-size:13px;color:var(--dim);letter-spacing:2px;display:flex;justify-content:space-between;align-items:center;}
+  .bar{height:6px;background:rgba(138,109,59,.18);border-radius:99px;overflow:hidden;margin-top:8px;}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cinnabar));transition:width .35s;border-radius:99px;}
+  .qcard{
+    background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:14px;
+    padding:26px 24px 24px;box-shadow:0 6px 22px rgba(74,58,40,.08);
+  }
+  .qdim{font-size:12px;color:var(--cinnabar);letter-spacing:3px;margin-bottom:10px;}
+  .qtext{font-size:19px;line-height:1.75;letter-spacing:1px;}
+  .opts{display:flex;flex-direction:column;gap:12px;margin-top:22px;}
+  .opt{
+    text-align:left;cursor:pointer;font-family:inherit;font-size:15px;line-height:1.7;
+    background:rgba(255,255,255,.72);border:1.5px solid var(--line);border-radius:10px;
+    padding:13px 16px;color:var(--ink);transition:all .15s;position:relative;letter-spacing:.5px;
+  }
+  .opt:hover{border-color:var(--cinnabar);background:#fffdf6;transform:translateX(4px);}
+  .opt .o{color:var(--cinnabar);font-weight:bold;margin-right:8px;font-size:14px;}
+  .navrow{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+  /* ---------- 加载 ---------- */
+  .loading{padding:80px 20px;text-align:center;}
+  .loading .big{font-size:22px;letter-spacing:6px;color:var(--brown);}
+  .loading .sub{margin-top:14px;color:var(--dim);font-size:13px;letter-spacing:2px;min-height:20px;transition:opacity .3s;}
+  .spin{
+    width:44px;height:44px;margin:30px auto 0;border:3px solid var(--line);border-top-color:var(--cinnabar);
+    border-radius:50%;animation:sp 1s linear infinite;
+  }
+  @keyframes sp{to{transform:rotate(360deg);}}
+  /* ---------- 结果 ---------- */
+  .result{padding-top:16px;text-align:center;position:relative;}
+  .result .rsub{letter-spacing:5px;font-size:12px;color:var(--gold);font-family:Georgia,serif;text-transform:uppercase;}
+  .match{
+    display:inline-block;margin:20px auto 4px;border:2px solid var(--cinnabar);border-radius:12px;
+    padding:14px 34px;background:rgba(255,255,255,.6);
+  }
+  .match .pct{font-size:44px;color:var(--cinnabar);font-weight:bold;font-family:Georgia,serif;line-height:1;}
+  .match .lbl{font-size:12px;color:var(--dim);letter-spacing:3px;margin-top:6px;}
+  .name{font-size:34px;letter-spacing:8px;margin-top:16px;}
+  .dyn{color:var(--gold);letter-spacing:4px;font-size:14px;margin-top:6px;}
+  .frame{
+    margin-top:22px;border:1.5px solid var(--line);border-radius:14px;background:rgba(255,255,255,.55);
+    padding:22px 20px;text-align:left;position:relative;box-shadow:0 8px 26px rgba(74,58,40,.1);
+  }
+  .frame::before{
+    content:"鉴";position:absolute;top:12px;right:14px;width:30px;height:30px;color:var(--cinnabar);
+    border:2px solid rgba(176,58,46,.55);border-radius:5px;display:flex;align-items:center;justify-content:center;
+    font-size:16px;transform:rotate(-4deg);opacity:.85;
+  }
+  .radar{display:flex;justify-content:center;margin:4px 0 6px;}
+  .bars{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+  .brow{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .brow .d{width:56px;color:var(--brown);letter-spacing:1px;}
+  .brow .tr{flex:1;height:10px;background:rgba(138,109,59,.15);border-radius:99px;overflow:hidden;}
+  .brow .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--cinnabar));border-radius:99px;transition:width .8s;}
+  .brow .v{width:34px;text-align:right;color:var(--cinnabar);font-weight:bold;}
+  .intro{margin-top:16px;font-size:14.5px;line-height:1.9;text-align:justify;color:var(--brown);}
+  .line{
+    margin-top:14px;padding:10px 14px;border-left:3px solid var(--cinnabar);background:rgba(176,58,46,.06);
+    font-size:14px;color:var(--ink);line-height:1.8;border-radius:0 8px 8px 0;
+  }
+  .others{margin-top:18px;font-size:13px;color:var(--dim);line-height:1.9;}
+  .others b{color:var(--brown);}
+  .again{margin-top:22px;}
+  .foot{margin-top:26px;text-align:center;font-size:11px;color:var(--dim);letter-spacing:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ 封面 ============ -->
+  <section class="cover" id="view-cover">
+    <div class="seal">鉴</div>
+    <h1>你与哪位<em>历史人物</em><br>相似？</h1>
+    <div class="subtitle">Figure Atlas · Ancient Archive</div>
+    <div class="tags">
+      <span class="tag">🏛️ 古代群像</span><span class="tag">👥 男女皆有</span>
+      <span class="tag">📐 多维分析</span><span class="tag">⚡ 即时出档案</span>
+    </div>
+    <div class="note">
+      <b>测试说明</b>：通过一组情境选择，读取你的<b>决断、洞察、表达与担当</b>。
+      系统将从<b>清朝以前</b>的中国历史人物中，为你找出最相似的那一位。
+      没有标准答案，请选择最接近真实自己的反应——答案将直接参与人物能力向量计算。
+    </div>
+    <div class="lockbox">
+      <div class="lbl">🔐 FIGURE ATLAS · 请输入四位访问码解锁档案</div>
+      <div class="lockrow">
+        <input id="code" maxlength="4" inputmode="numeric" placeholder="····" autocomplete="off">
+        <button class="btn" id="btn-enter" style="margin-top:0;">进入</button>
+      </div>
+      <div class="lockerr" id="code-err"></div>
+    </div>
+    <div class="hint">🎁 演示访问码：<b style="color:var(--cinnabar);letter-spacing:3px;">1024</b></div>
+  </section>
+
+  <!-- ============ 答题 ============ -->
+  <section class="quiz hidden" id="view-quiz">
+    <div class="progress">
+      <span id="q-step">第 1 / 16 题</span>
+      <span id="q-dim-tag"></span>
+    </div>
+    <div class="bar"><i id="q-bar"></i></div>
+    <div class="qcard">
+      <div class="qdim" id="q-dim"></div>
+      <div class="qtext" id="q-text"></div>
+      <div class="opts" id="q-opts"></div>
+    </div>
+    <div class="navrow">
+      <button class="btn ghost" id="btn-prev">← 上一题</button>
+      <span style="font-size:12px;color:var(--dim);">本页答题记录将参与计量</span>
+    </div>
+  </section>
+
+  <!-- ============ 加载 ============ -->
+  <section class="loading hidden" id="view-loading">
+    <div class="big">🔮 正在推演心性与命格……</div>
+    <div class="sub" id="loading-sub"></div>
+    <div class="spin"></div>
+  </section>
+
+  <!-- ============ 结果 ============ -->
+  <section class="result hidden" id="view-result">
+    <div class="rsub">Figure Atlas · Private Archive</div>
+    <div class="match">
+      <div class="pct" id="r-pct">--%</div>
+      <div class="lbl">与你的气度契合度</div>
+    </div>
+    <div class="name" id="r-name"></div>
+    <div class="dyn" id="r-dyn"></div>
+    <div class="frame">
+      <div class="radar">
+        <svg id="r-radar" width="240" height="240" viewBox="0 0 240 240"></svg>
+      </div>
+      <div class="bars" id="r-bars"></div>
+      <div class="intro" id="r-intro"></div>
+      <div class="line" id="r-line"></div>
+      <div class="others" id="r-others"></div>
+    </div>
+    <div class="again">
+      <button class="btn" id="btn-again">↺ 再测一次</button>
+    </div>
+    <div class="foot">FIGURE ATLAS · ANCIENT ARCHIVE · 本测试仅作趣味娱乐</div>
+  </section>
+
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const DIMS = [
+  {k:'D', name:'决断', note:'拍板 · 行动 · 魄力'},
+  {k:'I', name:'洞察', note:'识人 · 谋略 · 观察'},
+  {k:'E', name:'表达', note:'文采 · 口才 · 感染力'},
+  {k:'R', name:'担当', note:'责任 · 坚守 · 家国'},
+];
+
+const QUESTIONS = [
+  {dim:'D', t:'深夜急报：边境三城告急，粮草仅够十日。你如何发令？',
+   o:[['立即点将发兵，先夺回城池再说',{D:3}],
+      ['命斥候探清敌军虚实，再定进兵',{I:3}],
+      ['先安顿城中百姓，再议军事',{R:2,D:1}],
+      ['亲自登台，三军即日开拔',{D:2,E:1}]]},
+  {dim:'D', t:'庙堂之上，众臣各执一词，皇帝的目光转向了你……',
+   o:[['力排众议，直陈利害',{E:2,D:1}],
+      ['静观其变，待机而断',{I:2,D:1}],
+      ['以大局为重，主动揽下难事',{R:2,D:1}],
+      ['已看穿各方私心，直言破局之策',{I:2,E:1}]]},
+  {dim:'D', t:'你与同僚共商一策，眼看时机将逝……',
+   o:[['当断则断，成败我担',{D:3}],
+      ['再验一验此策的底数',{I:2,D:1}],
+      ['联合多方，共担其责',{R:2,E:1}],
+      ['先把利害说透，让人心先行',{E:3}]]},
+  {dim:'D', t:'叛乱骤起，主将战死，你临危受命……',
+   o:[['即刻整军，以雷霆之势平叛',{D:3}],
+      ['先稳军心，再逐一清剿',{R:2,I:1}],
+      ['广布眼线，找准时机一击致命',{I:3}],
+      ['鼓舞士气，与士卒同甘共苦',{E:2,R:1}]]},
+  {dim:'I', t:'初见一人，你更留意他哪一点？',
+   o:[['言谈之间的逻辑与破绽',{I:3}],
+      ['他的眼神与微表情',{I:2,E:1}],
+      ['他是否可托付要事',{R:2,I:1}],
+      ['他说的话是否中听',{E:3}]]},
+  {dim:'I', t:'一封密报语焉不详，你如何判断？',
+   o:[['比对以往军情，看是否有诈',{I:3}],
+      ['派心腹暗访核实',{D:2,I:1}],
+      ['交给信得过的老臣研判',{R:2,I:1}],
+      ['先不动声色，静观城中动向',{D:1,I:2}]]},
+  {dim:'I', t:'你发现同僚近日神色有异……',
+   o:[['暗中观察，记下所有反常',{I:3}],
+      ['直接询问，以免误人误己',{D:3}],
+      ['先查他经手之事',{I:2,D:1}],
+      ['信他为人，不必多疑',{R:3}]]},
+  {dim:'I', t:'一桩旧案沉冤，线索如丝……',
+   o:[['从账册与字迹间撕开一道口子',{I:3}],
+      ['重访当年证人，寻其破绽',{I:2,E:1}],
+      ['昭雪沉冤，本是分内之事',{R:3}],
+      ['写一篇檄文，让天下人评理',{E:3}]]},
+  {dim:'E', t:'宴席之上，众人请你作诗助兴……',
+   o:[['出口成章，应景即兴',{E:3}],
+      ['浅酌几句，点到即止',{E:2,I:1}],
+      ['推辞不过，以真情入句',{E:2,R:1}],
+      ['笑而不语，且看众人热闹',{I:3}]]},
+  {dim:'E', t:'你的奏疏要呈御前，你会如何落笔？',
+   o:[['引经据典，行文如剑',{E:3}],
+      ['言简意赅，直指要害',{D:1,E:2}],
+      ['以情动人，晓以大义',{E:2,R:1}],
+      ['藏锋于拙，留有余地',{I:3}]]},
+  {dim:'E', t:'面对误解你的挚友……',
+   o:[['当面陈情，纵使决裂也要说清',{E:2,D:1}],
+      ['写一封长信，把心迹一一剖白',{E:3}],
+      ['日久见人心，不必多言',{I:2,R:1}],
+      ['以行动示诚，但求问心无愧',{R:3}]]},
+  {dim:'E', t:'若你奉命出使敌国……',
+   o:[['唇枪舌剑，不辱使命',{E:3}],
+      ['察言观色，见机而作',{I:3}],
+      ['晓以利害，化干戈为玉帛',{E:2,R:1}],
+      ['一身胆气，刀斧加身亦不折节',{R:2,D:1}]]},
+  {dim:'R', t:'边关苦寒，轮换之期已到，你当如何？',
+   o:[['士卒未归，我岂可先返',{R:3}],
+      ['修书朝廷，力争改善边备',{E:2,R:1}],
+      ['巡视关防，确保无怠',{I:2,R:1}],
+      ['亲率轻骑，再探敌境',{D:3}]]},
+  {dim:'R', t:'你因直言被贬，谪居江州……',
+   o:[['述怀言志，将愁绪付与诗文',{E:3}],
+      ['静观时变，伺机再起',{I:3}],
+      ['造福一方，不废治理',{R:2,D:1}],
+      ['与民同乐，快意山水',{D:1,E:2}]]},
+  {dim:'R', t:'百姓流离，官仓却要征粮北上……',
+   o:[['抗命开仓，纵使获罪也值',{R:3}],
+      ['明修栈道，暗度陈仓保百姓',{I:3}],
+      ['联名上奏，陈明利害',{E:3}],
+      ['先斩后奏，事后再从容领罪',{D:3}]]},
+  {dim:'R', t:'若有一项功名与一位知己不可兼得……',
+   o:[['功名可以再取，知己不可复得',{R:1,E:2}],
+      ['先立身后立言，功成再叙旧',{D:2,R:1}],
+      ['携知己同隐山林，不问世事',{E:1,I:2}],
+      ['让贤于其，我自堂堂而立',{R:3}]]},
+];
+
+const PEOPLE = [
+  {n:'嬴政',  d:'秦 · 始皇帝',     v:[9,8,5,7],  intro:'十三岁即王位，十年扫平六国，自号始皇帝。书同文、车同轨、行郡县，中国自此一统。', line:'六国毕，四海一——你的锋芒，足以开创一个新纪元。'},
+  {n:'曹操',  d:'汉末 · 魏武帝',   v:[9,9,7,6],  intro:'挟天子以令诸侯，官渡一战定北方。乱世之中，唯才是举，枭雄之姿，千古评说。', line:'宁我负人，毋人负我——成大事者，不拘小节。'},
+  {n:'诸葛亮',d:'蜀汉 · 丞相',     v:[6,10,7,9], intro:'隆中一对，天下三分。六出祁山，鞠躬尽瘁。千载之下，犹见其羽扇纶巾。', line:'鞠躬尽瘁，死而后已——你的智慧里，藏着对天下的担当。'},
+  {n:'武则天',d:'唐 · 则天皇帝',   v:[9,8,8,6],  intro:'十四岁入宫，六十七岁称帝，中国历史上唯一的女皇帝。治宏贞观，政启开元。', line:'巾帼凌烟，日月当空——你生来便是要改写规则的人。'},
+  {n:'李世民',d:'唐 · 太宗',       v:[8,8,7,8],  intro:'玄武门之变登基，开创贞观之治。纳谏如流，华夷宾服，被尊为天可汗。', line:'兼听则明，偏信则暗——你有雷霆手段，亦有容人之量。'},
+  {n:'霍去病',d:'汉 · 骠骑将军',   v:[10,5,4,8], intro:'十七岁随军出征，封狼居胥，六战六捷，漠北一战尽驱匈奴，少年即封冠军侯。', line:'匈奴未灭，何以家为——你的字典里，没有“等一等”。'},
+  {n:'班超',  d:'汉 · 定远侯',     v:[9,7,6,8],  intro:'投笔从戎，出使西域三十一年，定五十余国。不费朝廷斗粮，开万世之丝路。', line:'投笔从戎，经略西域——笔尖与刀锋之间，你选了远方。'},
+  {n:'岳飞',  d:'宋 · 武穆',       v:[7,5,6,10], intro:'精忠报国，岳家军令金人丧胆。三十功名尘与土，八千里路云和月。', line:'精忠报国，还我河山——你为一句诺言，可付出一生。'},
+  {n:'王阳明',d:'明 · 心学宗师',   v:[7,9,7,8],  intro:'格物致知，龙场悟道。平叛乱、立心学，立德立功立言，真三不朽。', line:'知行合一，此心光明——你洞察世情，亦安顿本心。'},
+  {n:'张居正',d:'明 · 内阁首辅',   v:[9,8,6,8],  intro:'万历初年主政，一条鞭法、考成法，十年改革，力挽大明颓势。', line:'大张挞伐，力挽狂澜——你与天下对弈，落子无悔。'},
+  {n:'李白',  d:'唐 · 诗仙',       v:[8,6,10,5], intro:'天生我材必有用，千金散尽还复来。绣口一吐，便是半个盛唐。', line:'天生我材必有用——你的天马行空，是盛世最亮的注脚。'},
+  {n:'苏轼',  d:'宋 · 东坡居士',   v:[6,8,9,8],  intro:'一门三苏，诗词书画冠绝当世。三起三落，仍能一蓑烟雨任平生。', line:'竹杖芒鞋轻胜马——得意失意，你皆能饮一樽。'},
+  {n:'辛弃疾',d:'宋 · 词中之龙',   v:[8,6,9,9],  intro:'二十岁率五十骑直入金营擒叛徒，归宋后词名盖世，豪放一派冠绝南北。', line:'醉里挑灯看剑——你的豪情，是壮志未酬的刀光。'},
+  {n:'李清照',d:'宋 · 易安居士',   v:[4,7,10,6], intro:'千古第一才女，词婉约而气骨凛然。乱世飘零，犹写出“生当作人杰”。', line:'生当作人杰，死亦为鬼雄——柔肠之内，自有风骨。'},
+  {n:'花木兰',d:'北魏 · 代父从军', v:[9,5,3,10], intro:'替父从军，塞北征战十二载，归来对镜贴花黄。千年传唱，巾帼之魂。', line:'万里赴戎机——你心中所守，是比功名更重的情义。'},
+];
+
+/* ================= 状态 ================= */
+const MAXP = QUESTIONS.length * 3;        // 每维满分（48）
+let answers = [];                          // 每题选项 index
+let cur = 0;
+
+/* ================= 视图切换 ================= */
+function show(id){
+  ['view-cover','view-quiz','view-loading','view-result'].forEach(v=>{
+    document.getElementById(v).classList.toggle('hidden', v!==id);
+  });
+  if(id==='view-cover') window.scrollTo(0,0);
+}
+
+/* ================= 封面 / 访问码 ================= */
+function tryEnter(){
+  const code = document.getElementById('code').value.trim();
+  if(code === '1024'){
+    document.getElementById('code-err').textContent = '';
+    answers = []; cur = 0;
+    renderQuestion();
+    show('view-quiz');
+  }else{
+    document.getElementById('code-err').textContent = '访问码错误，请重新输入（提示：1024）';
+  }
+}
+document.getElementById('btn-enter').addEventListener('click', tryEnter);
+document.getElementById('code').addEventListener('keydown', e=>{ if(e.key==='Enter') tryEnter(); });
+
+/* ================= 答题 ================= */
+function renderQuestion(){
+  const q = QUESTIONS[cur];
+  const dim = DIMS.find(d=>d.k===q.dim);
+  document.getElementById('q-step').textContent = `第 ${cur+1} / ${QUESTIONS.length} 题`;
+  document.getElementById('q-dim').textContent = `【${dim.name}】${dim.note}`;
+  document.getElementById('q-dim-tag').textContent = dim.name;
+  document.getElementById('q-text').textContent = q.t;
+  document.getElementById('q-bar').style.width = ((cur)/QUESTIONS.length*100)+'%';
+  const box = document.getElementById('q-opts');
+  box.innerHTML = '';
+  q.o.forEach((opt,i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = `<span class="o">${'甲乙丙丁'[i]}</span>${opt[0]}`;
+    b.addEventListener('click', ()=>{
+      answers[cur] = i;
+      if(cur < QUESTIONS.length-1){ cur++; renderQuestion(); }
+      else { calcAndShow(); }
+      window.scrollTo(0,0);
+    });
+    box.appendChild(b);
+  });
+  document.getElementById('btn-prev').style.visibility = cur>0 ? 'visible' : 'hidden';
+}
+document.getElementById('btn-prev').addEventListener('click', ()=>{
+  if(cur>0){ cur--; renderQuestion(); window.scrollTo(0,0); }
+});
+
+/* ================= 计算与结果 ================= */
+function calcAndShow(){
+  // 1) 聚合四维得分
+  const sum = {D:0,I:0,E:0,R:0};
+  QUESTIONS.forEach((q,i)=>{
+    const opt = q.o[answers[i]];
+    Object.entries(opt[1]).forEach(([k,v])=>{ sum[k]+=v; });
+  });
+  // 2) 归一化到 0-10
+  const u = {D:sum.D/MAXP*10, I:sum.I/MAXP*10, E:sum.E/MAXP*10, R:sum.R/MAXP*10};
+  // 3) 与人物向量算余弦相似度
+  const ranked = PEOPLE.map(p=>{
+    const dot = u.D*p.v[0]+u.I*p.v[1]+u.E*p.v[2]+u.R*p.v[3];
+    const nu = Math.hypot(u.D,u.I,u.E,u.R), nv = Math.hypot(...p.v);
+    return {p, cos: dot/(nu*nv)};
+  }).sort((a,b)=>b.cos-a.cos);
+  const top = ranked[0], second = ranked[1], third = ranked[2];
+  // 4) 匹配度（区分度处理）
+  const pct = Math.min(99, Math.round(94 + (top.cos - second.cos) * 320));
+
+  show('view-loading');
+  const subs = ['正在度量你的决断之力……','正在推演你的洞察之明……','正在掂量你的表达之锋……','正在称量你的担当之重……','正在比对三千载人物卷宗……'];
+  let si = 0;
+  const subEl = document.getElementById('loading-sub');
+  subEl.textContent = subs[0];
+  const timer = setInterval(()=>{ si++; if(si<subs.length) subEl.textContent = subs[si]; }, 380);
+
+  setTimeout(()=>{
+    clearInterval(timer);
+    // 名称
+    document.getElementById('r-pct').textContent = pct + '%';
+    document.getElementById('r-name').textContent = top.p.n;
+    document.getElementById('r-dyn').textContent = top.p.d;
+    document.getElementById('r-intro').textContent = top.p.intro;
+    document.getElementById('r-line').textContent = '「' + top.p.line + '」';
+    document.getElementById('r-others').innerHTML =
+      `🔍 次相似：<b>${second.p.n}</b>（${second.p.d}）· <b>${third.p.n}</b>（${third.p.d}）`;
+    drawRadar(u, top.p.v);
+    // 能力条
+    const bars = document.getElementById('r-bars');
+    bars.innerHTML = '';
+    const lblMap = {D:'决断', I:'洞察', E:'表达', R:'担当'};
+    ['D','I','E','R'].forEach((k,i)=>{
+      const val = Math.min(10, Math.round((u[k]+top.p.v[i])/2*10)/10); // 你与人物该维的接近值
+      const row = document.createElement('div');
+      row.className = 'brow';
+      row.innerHTML = `<span class="d">${lblMap[k]}</span><span class="tr"><i style="width:0"></i></span><span class="v">${val.toFixed(1)}</span>`;
+      bars.appendChild(row);
+      setTimeout(()=>{ row.querySelector('i').style.width = (val*10)+'%'; }, 120+i*120);
+    });
+    show('view-result');
+    window.scrollTo(0,0);
+  }, 1900);
+}
+
+/* ================= 雷达图 ================= */
+function drawRadar(u, v){
+  const svg = document.getElementById('r-radar');
+  const cx=120, cy=120, R=82;
+  const names = ['决断','洞察','表达','担当'];
+  const angle = i => (Math.PI/2 + i*Math.PI/2);   // 上、右、下、左
+  const pt = (i, r) => [cx + r*Math.cos(angle(i)), cy - r*Math.sin(angle(i))];
+  let html = '';
+  // 网格（3圈）
+  [0.5, 1].forEach((k,i)=>{
+    const pts = [0,1,2,3].map(j=>pt(j, R*k).join(',')).join(' ');
+    html += `<polygon points="${pts}" fill="none" stroke="#c9b183" stroke-width="1" opacity="${i?0.9:0.5}"/>`;
+  });
+  // 轴线
+  for(let j=0;j<4;j++){
+    const [x,y] = pt(j,R);
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#c9b183" stroke-width="1" opacity=".7"/>`;
+  }
+  // 用户向量（虚线金）+ 人物向量（实线朱）
+  const drawPoly = (vals, stroke, dash, w, fill)=>{
+    const pts = vals.map((val,j)=>pt(j, R*val/10).join(',')).join(' ');
+    return `<polygon points="${pts}" fill="${fill||'none'}" stroke="${stroke}" stroke-width="${w}" stroke-dasharray="${dash}"/>`;
+  };
+  html += drawPoly([u.D,u.I,u.E,u.R], '#8a6d3b', '5,4', 1.6, 'rgba(138,109,59,.10)');   // 你
+  html += drawPoly([v[0],v[1],v[2],v[3]], '#b03a2e', '', 2.2, 'rgba(176,58,46,.16)'); // 人物
+  // 标签
+  const labelOff = 24;
+  for(let j=0;j<4;j++){
+    const [x,y] = pt(j, R+labelOff);
+    html += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="13" fill="#4a3a28" style="font-family:KaiTi,serif">${names[j]}</text>`;
+  }
+  svg.innerHTML = html;
+}
+
+/* ================= 重新开始 ================= */
+document.getElementById('btn-again').addEventListener('click', ()=>{
+  document.getElementById('code').value = '';
+  show('view-cover');
+});
+
+show('view-cover');
+</script>
+</body>
+</html>
